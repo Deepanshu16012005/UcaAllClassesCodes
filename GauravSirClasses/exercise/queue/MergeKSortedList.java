@@ -13,15 +13,16 @@ class MergeKSortedList {
     });
     for(int i=0;i<lists.length;i++){
       ListNode head = lists[i];
-      while(head!=null){
+      if(head!=null){
         pq.add(head);
-	head=head.next;
       }
     }
     ListNode temp = new ListNode(0);
     ListNode dummy=temp;
     while(!pq.isEmpty()){
-      temp.next=pq.poll();
+      ListNode removed = pq.poll();
+      if(removed.next!=null)pq.add(removed.next); 
+      temp.next=removed;
       temp=temp.next;
     }
     return dummy.next;
