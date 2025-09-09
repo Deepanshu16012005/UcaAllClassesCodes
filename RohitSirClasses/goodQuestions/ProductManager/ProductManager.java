@@ -1,23 +1,56 @@
 import java.util.*;
-class Main{
-    public static void main (String[] args){
+//best everything in o(1) for o(1) always we use linked list
+class Main {
+    public static void main(String[] args) {
         ProductTracker pt = new ProductTracker();
-        pt.wishlit("a");
-        pt.wishlit("a");
-        pt.wishlit("a");
-        pt.wishlit("a");
-        pt.wishlit("b");pt.wishlit("b");pt.wishlit("b");
-        pt.wishlit("c");pt.wishlit("c");
-        System.out.println(pt.getMaxProduct());
-        System.out.println(pt.getMinProduct());
-        pt.delist("a");pt.delist("a");pt.delist("a");pt.delist("a");
-        pt.delist("a");pt.delist("a");pt.delist("a");pt.delist("a");
-        System.out.println(pt.getMaxProduct());
-        System.out.println(pt.getMinProduct());
+
+        // Add products
+        pt.wishlit("apple");
+        pt.wishlit("apple");
+        pt.wishlit("banana");
+        pt.wishlit("banana");
+        pt.wishlit("banana");
+        pt.wishlit("orange");
+
+        // Check max/min after inserts
+        System.out.println("Max product (expect banana): " + pt.getMaxProduct());
+        System.out.println("Min product (expect orange): " + pt.getMinProduct());
+
+        // Add more apples to change order
+        pt.wishlit("apple");
+        pt.wishlit("apple");
+
+        System.out.println("Max product (expect apple): " + pt.getMaxProduct());
+        System.out.println("Min product (expect orange): " + pt.getMinProduct());
+
+        // Remove oranges completely
+        pt.delist("orange");
+        pt.delist("orange"); // removing non-existing should do nothing
+
+        System.out.println("After removing orange:");
+        System.out.println("Max product: " + pt.getMaxProduct());
+        System.out.println("Min product (expect banana): " + pt.getMinProduct());
+
+        // Reduce banana
+        pt.delist("banana");
+        pt.delist("banana");
+
+        System.out.println("After reducing banana:");
+        System.out.println("Max product (expect apple): " + pt.getMaxProduct());
+        System.out.println("Min product (expect banana): " + pt.getMinProduct());
+
+        // Remove everything
+        pt.delist("apple");
+        pt.delist("apple");
+        pt.delist("apple");
+        pt.delist("apple");
+        pt.delist("banana");
+
+        System.out.println("After removing all:");
+        System.out.println("Max product: " + pt.getMaxProduct());
+        System.out.println("Min product: " + pt.getMinProduct());
     }
 }
-
-//best everything in o(1) for o(1) always we use linked list
  
 class ProductTracker {
     class Node{
@@ -25,26 +58,133 @@ class ProductTracker {
 	Node next;
 	Node prev;
 	List<String>products;
+	Node(int i){
+	  freq=i;
+	  products = new ArrayList<>();
+	}
     }
+    HashMap<Integer,Node>nodeMap;
+    HashMap<String,Integer>freqMap;
     Node head;
     Node tail;
     public ProductTracker() {
         head=null;
 	tail=null;
+	nodeMap= new HashMap<>();
+	freqMap= new HashMap<>();
     }
-    
+    private void removeNode(Node node){
+      if(node.prev==null){
+        head=head.next;
+        head.prev=null;
+      }else{
+        node.prev.next=node.next;
+      }
+      if(node.next==null){
+        tail=tail.prev;
+	tail.next=null;
+      }else{
+        node.next.prev=node.prev;
+      }
+    }
+    private void addNode(Node ref , Node node){
+      if(ref==null){
+        node.next=head;
+	if(head!=null){
+	  head.prev=node;
+	}
+	head=node;
+	if(tail==null){
+	  tail=head;
+	}
+	return;
+      }
+      node.next=ref.next;
+      ref.next=node;
+      node.prev=ref;
+      if(node.next!=null){
+        node.next.prev=node;
+      }else{
+        tail=node;
+      }
+    } 
     public void wishlit(String productName)  {
-        
+      int oldFreq = freqMap.getOrDefault(productName,0);
+      int newFreq = oldFreq + 1 ;
+      if(head==null){
+        Node node = new Node(newFreq);
+	node.products.add(productName);
+        head=node;
+	if(tail==null){
+	  tail=node;
+	}
+	freqMap.put(productName,newFreq);
+        nodeMap.put(newFreq,node);
+        return;
+      }
+      if(oldFreq>0){
+        Node oldNode = nodeMap.get(oldFreq);
+	oldNode.products.remove(productName);
+	if(oldNode.products.isEmpty()){
+	  removeNode(oldNode);
+	  nodeMap.remove(oldFreq);
+	}
+      }
+      freqMap.put(productName,newFreq);
+      Node newNode = nodeMap.get(newFreq);
+      if(newNode==null){
+        newNode = new Node(newFreq);
+	Node prevNode=(oldFreq>0) ? nodeMap.get(oldFreq) : null;
+	addNode(prevNode,newNode);
+      }
+      newNode.products.add(productName);
+      nodeMap.put(newFreq,newNode);
     }
+
+
+
+    public void delist(String productName){
+      if(head==null){
+        return ;
+      }
+      if(!freqMap.containsKey(productName)){
+        return ;
+      }
+      int oldFreq = freqMap.get(productName);
+      int newFreq = oldFreq-1;
+      Node oldNode = nodeMap.get(oldFreq);
+      oldNode.products.remove(productName);
+      if(oldNode.products.isEmpty()){
+        removeNode(oldNode);
+	nodeMap.remove(oldFreq);
+      }
+      if(newFreq>0){
+        freqMap.put(productName,newFreq);
+	Node newNode = nodeMap.get(newFreq);
+	if(newNode==null){
+	  newNode = new Node(newFreq);
+	  Node prevNode = (newFreq-1>0) ? nodeMap.get(newFreq-1) : null;
+	  addNode(prevNode,newNode);
+	}
+	newNode.products.add(productName);
+	nodeMap.put(newFreq,newNode);
+      }
+    }
+
     
-    public void delist(String productName)  {
-        
-    }
     
     public String getMaxProduct()  {
+      if(tail==null){
+        return null;
+      }
+      return tail.products.get(0);
     }
     
     public String getMinProduct()  {
+      if(head==null){
+        return null;
+      }
+      return head.products.get(0);
     }
 }
 
