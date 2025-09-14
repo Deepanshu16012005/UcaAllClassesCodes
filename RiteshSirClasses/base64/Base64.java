@@ -1,10 +1,16 @@
 import java.util.*;
-class Base64{
+class Base64{	
   private static final char[] BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
-
-  Base64(){
-  
-  }	
+  // why 128?
+  // . largest ascii value char in base 64 is z i.e 122
+  // . we need 123 
+  // . 128 looks cleaner
+  private static final int[] BASE64_REVERSE = new int[128];
+  static{
+    for(int i = 0; i<BASE64_ALPHABET.length; i++){
+      BASE64_REVERSE[BASE64_ALPHABET[i]] = i;
+    }
+  } 
   public String encode(String msg){
     // give no value for each character of msg 
     // MAN -> [77,97,110]
@@ -48,7 +54,18 @@ class Base64{
     }
     return sb.toString();
   }
-  public String decode(String encodedString){
-  
+  public String decode(String msg){
+    StringBuilder sb = new StringBuilder();
+    for(int i = 0; i < msg.length(); i+=4){
+      int b1 = BASE64_REVERSE[msg.charAt(i)];
+      int b2 = BASE64_REVERSE[msg.charAt(i+1)];
+      int b3 = msg.charAt(i+2) == '=' ? 0 : BASE64_REVERSE[msg.charAt(i+2)];
+      int b4 = msg.charAt(i+3) == '=' ? 0 : BASE64_REVERSE[msg.charAt(i+3)];        
+      int combined = (b1 << 18) | (b2 << 12) | (b3 << 6) | b4;
+      sb.append((char)((combined >> 16) & 0xFF));
+      if(msg.charAt(i+2) != '=') sb.append((char)((combined >> 8) & 0xFF));
+      if(msg.charAt(i+3) != '=') sb.append((char)((combined) & 0xFF));
+    }
+    return sb.toString();   
   }
 }
