@@ -37,12 +37,21 @@
    */
   public int countPaths(int m, int n, int x, int y) {
     if(x==0 && y==0){
+        return 0;
+    }
+    return countPath(m,n,x,y);
+  }
+  public int countPath(int m , int n, int x, int y){
+    if(x==0 && y==0){
         return 1;
     }
-    if(x>0){
-        return 0+countPaths(m,n,x-1,y);
+    if(x==0){
+        return countPath(m,n,x,y-1);
     }
-    return 0+countPaths(m,n,x,y-1);
+    if(y==0){
+        return countPath(m,n,x-1,y);
+    }
+    return countPath(m,n,x,y-1)+countPath(m,n,x-1,y);
   }
 
   /**
