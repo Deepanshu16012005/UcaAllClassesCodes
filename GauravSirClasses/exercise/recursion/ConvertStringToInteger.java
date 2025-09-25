@@ -23,17 +23,24 @@ public class ConvertStringToInteger {
         if(s.length()==0){
 	    return 0;
 	}
-
+	int[] ans = new int[1];
         if(s.charAt(0)=='-'){
-	    return -1 * helper(s.substring(1));
+	     helper(s.substring(1),ans);
+	     return -1 * ans[0];
 	}	
-        return helper(s);
+        helper(s,ans);
+	return ans[0];
     }
-    public int helper(String s){
+    public void helper(String s, int[] ans){
 	if(s.length()==0){
-	    return 0;
-	}    
-        return ((int)(s.charAt(0)-'0') * 10) +  helper(s.substring(1));
+	    return;
+	}
+    	if(!Character.isDigit(s.charAt(0))){
+	    ans[0] = 0;
+	    return;
+	}	
+        ans[0] += ((int)((s.charAt(0)-'0') * Math.pow(10,s.length()-1)));
+        helper(s.substring(1),ans);
     }
 
     /**
