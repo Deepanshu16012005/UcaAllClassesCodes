@@ -17,6 +17,20 @@ public class TwoNonRepeatingElements {
 	  n = n ^ num;
 	}
 
+	// no with rightmost set bit as set only
+	int mask = n & -n;
+	// create two buckets check if that bit set or not 
+	int b1 = 0;
+	int b2 = 0;
+	for(int num : nums){
+	  if((num & mask) == 0){
+	    b1 ^= num;
+	  }else{
+	    b2 ^= num;
+	  }
+	}
+	return new int[] {b1, b2};
+
     }
 
     public static void main(String[] args) {
