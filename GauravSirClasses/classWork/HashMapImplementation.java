@@ -1,15 +1,11 @@
-/*
- * Decompiled with CFR 0.152.
- */
-class HashMapImplementation<Key, Value> {
-    private int M = 32;
-    private Node[] st = new Node[this.M];
 
-    HashMapImplementation() {
-    }
+class HashMapImplementation<Key, Value> {
+    private Node<Key,Value>[] st =(Node<Key,Value>[]) new Node[32];
+    private int size =0;
+    private float lf= 0.75f;
 
     private int hash(Key Key) {
-        return (Key.hashCode() & Integer.MAX_VALUE) % 32;
+        return (Key.hashCode() & Integer.MAX_VALUE) % st.length;
     }
 
     public Value get(Key Key) {
@@ -17,7 +13,7 @@ class HashMapImplementation<Key, Value> {
         Node node = this.st[n];
         while (node != null) {
             if (node.key.equals(Key)) {
-                return (Value)node.value;
+                return node.value;
             }
             node = node.next;
         }
@@ -34,16 +30,30 @@ class HashMapImplementation<Key, Value> {
             node = node.next;
         }
         this.st[n] = new Node(Key, Value, this.st[n]);
+	size++;
+	if((float)(size /st.length)>lf){
+	  rehash();
+	}
+    }
+    private void rehash(){
+      Node[] old = st;
+      st = (Node<Key,Value>[]) new Node[old.length*2];
+      size = 0;
+      for(int i = 0; i<old.length; i++){
+        for(Node x = old[i]; x!=null; x=x.next){
+	  put(x.key,x.value);
+	}
+      }
     }
 
-    static class Node {
-        private Object key;
-        private Object value;
-        private Node next;
+    class Node<K,V> {
+        K key;
+        V value;
+        Node<K,V> next;
 
-        Node(Object object, Object object2, Node node) {
-            this.key = object;
-            this.value = object2;
+        Node(Key key, Value value, Node node) {
+            this.key = key;
+            this.value = value;
             this.next = node;
         }
     }
